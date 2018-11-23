@@ -1,7 +1,7 @@
 "use strict";
 
 // camera
-let CAMERA_POINT = new Point3D(0, 0, -500);
+let CAMERA_POINT = new Point3D(0, 0, -1000);
 const FOCUS_POINT = 2000;
 
 // viewport
@@ -23,9 +23,9 @@ let model = [];
 let THETA_X = 0;
 let THETA_Y = 0;
 let THETA_Z = 0;
-let DTHETA_X = 0.00;
-let DTHETA_Y = 0.00;
-let DTHETA_Z = 0.00;
+let DTHETA_X = 0.01;
+let DTHETA_Y = 0.01;
+let DTHETA_Z = 0.01;
 
 // canvas
 let canvas;
@@ -37,7 +37,7 @@ const KEYS = {
     KeyQ: rotateZMin,
     KeyE: rotateZPlus,
     KeyA: rotateYMin,
-    keyD: rotateYPlus,
+    KeyD: rotateYPlus,
     KeyZ: rotateXMin,
     KeyC: rotateXPlus,
     ArrowUp: goUp,
@@ -71,11 +71,15 @@ function onKeyDown(e) {
 function frame() {
     ctx.clearRect(0, 0, VIEWPORT_MAX_X, VIEWPORT_MAX_Y);
 
-    //let rotated = rotateModelX(model, THETA_X);
-    //rotated = rotateModelY(rotated, THETA_Y);
-    //rotated = rotateModelZ(rotated, THETA_Z);
+    let rotated = rotateModelX(model, THETA_X);
+    rotated = rotateModelY(rotated, THETA_Y);
+    rotated = rotateModelZ(rotated, THETA_Z);
 
-    render(model, new Point3D(0, 0, 0));
+    THETA_X += DTHETA_X;
+    THETA_Y += DTHETA_Y;
+    THETA_Z += DTHETA_Z;
+
+    render(rotated, new Point3D(0, 0, 0));
 
     requestAnimationFrame(frame);
 }
@@ -221,27 +225,33 @@ function goBackwards() {
 }
 
 function rotateZMin() {
-    THETA_Z -= DTHETA_Z;
+    DTHETA_Z -= 0.002;
+    console.log(DTHETA_Z);
 }
 
 function rotateZPlus() {
-    THETA_Z += DTHETA_Z;
+    DTHETA_Z += 0.002;
+    console.log(DTHETA_Z);
 }
 
 function rotateYMin() {
-    THETA_Y -= DTHETA_Y;
+    DTHETA_Y -= 0.002;
+    console.log(DTHETA_Y);
 }
 
 function rotateYPlus() {
-    THETA_Y += DTHETA_Y;
+    DTHETA_Y += 0.002;
+    console.log(DTHETA_Y);
 }
 
 function rotateXMin() {
-    THETA_X -= DTHETA_X;
+    DTHETA_X -= 0.002;
+    console.log(DTHETA_X);
 }
 
 function rotateXPlus() {
-    THETA_X += DTHETA_X;
+    DTHETA_X += 0.002;
+    console.log(DTHETA_X);
 }
 
 function goUp() {
