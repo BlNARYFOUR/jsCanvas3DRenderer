@@ -1,7 +1,7 @@
 "use strict";
 
 // camera
-let CAMERA_POINT = new Point3D(0, 0, 0);
+let CAMERA_POINT = new Point3D(0, 0, -500);
 const FOCUS_POINT = 2000;
 
 // viewport
@@ -16,12 +16,16 @@ let VIEWPORT_RESOLUTION_WIDTH = 1920;
 let VIEWPORT_RESOLUTION_HEIGHT = 1080;
 
 // model
-const STEP = 40;
+const STEP = 1000/(20 - 1);
 let model = [];
 
 //rotate
+let THETA_X = 0;
 let THETA_Y = 0;
-const DTHETA_Y = 0.01;
+let THETA_Z = 0;
+let DTHETA_X = 0.01;
+let DTHETA_Y = 0.01;
+let DTHETA_Z = 0.01;
 
 // canvas
 let canvas;
@@ -42,10 +46,15 @@ function init(e) {
 function frame() {
     ctx.clearRect(0, 0, VIEWPORT_MAX_X, VIEWPORT_MAX_Y);
 
-    let rotated = rotateModelY(model, THETA_Y);
-    render(rotated, new Point3D(0, 0, 0));
+    let rotated = rotateModelX(model, THETA_X);
+    rotated = rotateModelY(rotated, THETA_Y);
+    rotated = rotateModelZ(rotated, THETA_Z);
 
+    THETA_X += DTHETA_X;
     THETA_Y += DTHETA_Y;
+    THETA_Z += DTHETA_Z;
+
+    render(rotated, new Point3D(0, 0, 0));
 
     requestAnimationFrame(frame);
 }
@@ -115,11 +124,47 @@ function rotatePointY(point, theta) {
     return new Point3D(X, Y, Z);
 }
 
+function rotatePointX(point, theta) {
+    const X = point.x;
+    const Y = Math.sin(theta) * point.z + Math.cos(theta) * point.y;
+    const Z = Math.cos(theta) * point.z - Math.sin(theta) * point.y;
+
+    return new Point3D(X, Y, Z);
+}
+
+function rotatePointZ(point, theta) {
+    const X = Math.sin(theta) * point.y + Math.cos(theta) * point.x;
+    const Y = Math.cos(theta) * point.y - Math.sin(theta) * point.x;
+    const Z = point.z;
+
+    return new Point3D(X, Y, Z);
+}
+
 function rotateModelY(model, theta) {
     let rotatedModel = [];
 
     model.forEach(point => {
         rotatedModel.push(rotatePointY(point, theta));
+    });
+
+    return rotatedModel;
+}
+
+function rotateModelX(model, theta) {
+    let rotatedModel = [];
+
+    model.forEach(point => {
+        rotatedModel.push(rotatePointX(point, theta));
+    });
+
+    return rotatedModel;
+}
+
+function rotateModelZ(model, theta) {
+    let rotatedModel = [];
+
+    model.forEach(point => {
+        rotatedModel.push(rotatePointZ(point, theta));
     });
 
     return rotatedModel;
