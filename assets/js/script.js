@@ -1,7 +1,7 @@
 "use strict";
 
 // camera
-let CAMERA_POINT = new Point3D(0, 0, -1000);
+let CAMERA_POINT = new Point3D(0, 0, -1000, null);
 const FOCUS_POINT = 2000;
 
 // viewport
@@ -16,16 +16,16 @@ let VIEWPORT_RESOLUTION_WIDTH = 1920;
 let VIEWPORT_RESOLUTION_HEIGHT = 1080;
 
 // model
-const STEP = 1000/(20 - 1);
+const STEP = 1000/(21 - 1);
 let model = [];
 
 //rotate
 let THETA_X = 0;
 let THETA_Y = 0;
 let THETA_Z = 0;
-let DTHETA_X = 0.01;
-let DTHETA_Y = 0.01;
-let DTHETA_Z = 0.01;
+let DTHETA_X = 0.00;
+let DTHETA_Y = 0.00;
+let DTHETA_Z = 0.00;
 
 // canvas
 let canvas;
@@ -79,7 +79,7 @@ function frame() {
     THETA_Y += DTHETA_Y;
     THETA_Z += DTHETA_Z;
 
-    render(rotated, new Point3D(0, 0, 0));
+    render(rotated, new Point3D(0, 0, 0, null));
 
     requestAnimationFrame(frame);
 }
@@ -107,21 +107,44 @@ function calibrateViewport() {
     VIEWPORT_MAX_Y = CAMERA_POINT.y + (VIEWPORT_RESOLUTION_HEIGHT / PXL) / 2;
 }
 
-function Point2D(x, y) {
+function Point2D(x, y, color, draw) {
     this.x = x;
     this.y = y;
+    this.color = color;
+    this.draw = draw;
 }
-function Point3D(x, y, z) {
+function Point3D(x, y, z, color, draw) {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.color = color;
+    this.draw = draw;
 }
 
 function genCube() {
     for(let x=-500; x<=500; x+=STEP) {
         for(let y=-500; y<=500; y+=STEP) {
             for(let z=-500; z<=500; z+=STEP) {
-                model.push(new Point3D(x, y, z));
+                let color = "#ffffff";
+                let draw = true;
+
+                if(z === -500) {
+                    color = "#ff0000";
+                } else if(z === 500) {
+                    color = "#ffaa00";
+                } else if(y === -500) {
+                    color = "#22aa22";
+                } else if(y === 500) {
+                    color = "#0000ff";
+                } else if(x === -500) {
+                    color = "#ffef00"
+                } else if(x === 500) {
+                    color = "#ff00ff";
+                } else {
+                    draw = false;
+                }
+
+                model.push(new Point3D(x, y, z, color, draw));
             }
         }
     }
@@ -131,14 +154,14 @@ function projectPoint3Dto2D(point) {
     const X = FOCUS_POINT * (point.x - CAMERA_POINT.x) / (FOCUS_POINT + point.z - CAMERA_POINT.z);
     const Y = FOCUS_POINT * (point.y - CAMERA_POINT.y) / (FOCUS_POINT + point.z - CAMERA_POINT.z);
 
-    return new Point2D(X, Y);
+    return new Point2D(X, Y, point.color, point.draw);
 }
 
 function translateToCanvas(point) {
     const PIXEL_X = (point.x - VIEWPORT_MIN_X) * VIEWPORT_RESOLUTION_WIDTH / (VIEWPORT_MAX_X - VIEWPORT_MIN_X);
     const PIXEL_Y = VIEWPORT_RESOLUTION_HEIGHT - (point.y - VIEWPORT_MIN_Y) * VIEWPORT_RESOLUTION_HEIGHT / (VIEWPORT_MAX_Y - VIEWPORT_MIN_Y);
 
-    return new Point2D(PIXEL_X, PIXEL_Y);
+    return new Point2D(PIXEL_X, PIXEL_Y, point.color, point.draw);
 }
 
 function rotatePointY(point, theta) {
@@ -146,7 +169,7 @@ function rotatePointY(point, theta) {
     const Y = point.y;
     const Z = Math.sin(theta) * point.x + Math.cos(theta) * point.z;
 
-    return new Point3D(X, Y, Z);
+    return new Point3D(X, Y, Z, point.color, point.draw);
 }
 
 function rotatePointX(point, theta) {
@@ -154,7 +177,7 @@ function rotatePointX(point, theta) {
     const Y = Math.sin(theta) * point.z + Math.cos(theta) * point.y;
     const Z = Math.cos(theta) * point.z - Math.sin(theta) * point.y;
 
-    return new Point3D(X, Y, Z);
+    return new Point3D(X, Y, Z, point.color, point.draw);
 }
 
 function rotatePointZ(point, theta) {
@@ -162,7 +185,7 @@ function rotatePointZ(point, theta) {
     const Y = Math.cos(theta) * point.y - Math.sin(theta) * point.x;
     const Z = point.z;
 
-    return new Point3D(X, Y, Z);
+    return new Point3D(X, Y, Z, point.color, point.draw);
 }
 
 function rotateModelY(model, theta) {
@@ -201,17 +224,19 @@ function renderPoint(point) {
     const PROJECTED_POINT = projectPoint3Dto2D(point);
     const TRANSLATED_POINT = translateToCanvas(PROJECTED_POINT);
 
-    ctx.beginPath();
-    ctx.moveTo(TRANSLATED_POINT.x, TRANSLATED_POINT.y);
-    ctx.lineTo(TRANSLATED_POINT.x + 1, TRANSLATED_POINT.y + 1);
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "white";
-    ctx.stroke();
+    if(point.draw) {
+        ctx.beginPath();
+        ctx.moveTo(TRANSLATED_POINT.x, TRANSLATED_POINT.y);
+        ctx.lineTo(TRANSLATED_POINT.x + 1, TRANSLATED_POINT.y + 1);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = point.color;
+        ctx.stroke();
+    }
 }
 
 function render(model, coordinates) {
     model.forEach(point => {
-        point = new Point3D(point.x + coordinates.x, point.y + coordinates.y, point.z + coordinates.z);
+        point = new Point3D(point.x + coordinates.x, point.y + coordinates.y, point.z + coordinates.z, point.color, point.draw);
         renderPoint(point);
     });
 }
@@ -225,33 +250,27 @@ function goBackwards() {
 }
 
 function rotateZMin() {
-    DTHETA_Z -= 0.002;
-    console.log(DTHETA_Z);
+    THETA_Z -= 0.005;
 }
 
 function rotateZPlus() {
-    DTHETA_Z += 0.002;
-    console.log(DTHETA_Z);
+    THETA_Z += 0.01;
 }
 
 function rotateYMin() {
-    DTHETA_Y -= 0.002;
-    console.log(DTHETA_Y);
+    THETA_Y -= 0.01;
 }
 
 function rotateYPlus() {
-    DTHETA_Y += 0.002;
-    console.log(DTHETA_Y);
+    THETA_Y += 0.01;
 }
 
 function rotateXMin() {
-    DTHETA_X -= 0.002;
-    console.log(DTHETA_X);
+    THETA_X -= 0.01;
 }
 
 function rotateXPlus() {
-    DTHETA_X += 0.002;
-    console.log(DTHETA_X);
+    THETA_X += 0.01;
 }
 
 function goUp() {
