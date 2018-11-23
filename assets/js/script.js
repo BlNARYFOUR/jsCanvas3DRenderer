@@ -31,6 +31,21 @@ let DTHETA_Z = 0.00;
 let canvas;
 let ctx;
 
+const KEYS = {
+    KeyW: goForward,
+    KeyS: goBackwards,
+    KeyQ: rotateZMin,
+    KeyE: rotateZPlus,
+    KeyA: rotateYMin,
+    keyD: rotateYPlus,
+    KeyZ: rotateXMin,
+    KeyC: rotateXPlus,
+    ArrowUp: goUp,
+    ArrowDown: goDown,
+    ArrowLeft: goLeft,
+    ArrowRight: goRight,
+};
+
 document.addEventListener("DOMContentLoaded", init);
 
 function init(e) {
@@ -41,20 +56,26 @@ function init(e) {
     frame();
 
     window.addEventListener("resize", resize);
+    document.addEventListener("keydown", onKeyDown);
+}
+
+function onKeyDown(e) {
+    console.log(e.code);
+    try {
+        KEYS[e.code]();
+    } catch(e) {
+        console.log("Unknown key.");
+    }
 }
 
 function frame() {
     ctx.clearRect(0, 0, VIEWPORT_MAX_X, VIEWPORT_MAX_Y);
 
-    let rotated = rotateModelX(model, THETA_X);
-    rotated = rotateModelY(rotated, THETA_Y);
-    rotated = rotateModelZ(rotated, THETA_Z);
+    //let rotated = rotateModelX(model, THETA_X);
+    //rotated = rotateModelY(rotated, THETA_Y);
+    //rotated = rotateModelZ(rotated, THETA_Z);
 
-    THETA_X += DTHETA_X;
-    THETA_Y += DTHETA_Y;
-    THETA_Z += DTHETA_Z;
-
-    render(rotated, new Point3D(0, 0, 0));
+    render(model, new Point3D(0, 0, 0));
 
     requestAnimationFrame(frame);
 }
@@ -189,4 +210,52 @@ function render(model, coordinates) {
         point = new Point3D(point.x + coordinates.x, point.y + coordinates.y, point.z + coordinates.z);
         renderPoint(point);
     });
+}
+
+function goForward() {
+    CAMERA_POINT.z += 10;
+}
+
+function goBackwards() {
+    CAMERA_POINT.z -= 10;
+}
+
+function rotateZMin() {
+    THETA_Z -= DTHETA_Z;
+}
+
+function rotateZPlus() {
+    THETA_Z += DTHETA_Z;
+}
+
+function rotateYMin() {
+    THETA_Y -= DTHETA_Y;
+}
+
+function rotateYPlus() {
+    THETA_Y += DTHETA_Y;
+}
+
+function rotateXMin() {
+    THETA_X -= DTHETA_X;
+}
+
+function rotateXPlus() {
+    THETA_X += DTHETA_X;
+}
+
+function goUp() {
+    CAMERA_POINT.y += 10;
+}
+
+function goDown() {
+    CAMERA_POINT.y -= 10;
+}
+
+function goLeft() {
+    CAMERA_POINT.x -= 10;
+}
+
+function goRight() {
+    CAMERA_POINT.x += 10;
 }
