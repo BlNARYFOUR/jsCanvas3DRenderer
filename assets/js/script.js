@@ -23,9 +23,9 @@ let model = [];
 let THETA_X = 0;
 let THETA_Y = 0;
 let THETA_Z = 0;
-let DTHETA_X = 0.01;
-let DTHETA_Y = 0.01;
-let DTHETA_Z = 0.01;
+let DTHETA_X = 0.00;
+let DTHETA_Y = 0.00;
+let DTHETA_Z = 0.00;
 
 // canvas
 let canvas;
@@ -103,8 +103,8 @@ function genCube() {
 }
 
 function projectPoint3Dto2D(point) {
-    const X = FOCUS_POINT * (point.x - CAMERA_POINT.x) / (FOCUS_POINT + point.z - CAMERA_POINT.z) + CAMERA_POINT.x;
-    const Y = FOCUS_POINT * (point.y - CAMERA_POINT.y) / (FOCUS_POINT + point.z - CAMERA_POINT.z) + CAMERA_POINT.y;
+    const X = FOCUS_POINT * (point.x - CAMERA_POINT.x) / (FOCUS_POINT + point.z - CAMERA_POINT.z);
+    const Y = FOCUS_POINT * (point.y - CAMERA_POINT.y) / (FOCUS_POINT + point.z - CAMERA_POINT.z);
 
     return new Point2D(X, Y);
 }
