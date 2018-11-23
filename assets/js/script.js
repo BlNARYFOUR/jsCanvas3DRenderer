@@ -1,9 +1,11 @@
 "use strict";
 
-const VIEWPORT_WIDTH = 4000;
-
+// camera
 let CAMERA_POINT = new Point3D(0, 0, 0);
 const FOCUS_POINT = 2000;
+
+// viewport
+const VIEWPORT_WIDTH = 4000;
 
 let VIEWPORT_MIN_X = -2000;
 let VIEWPORT_MAX_X = 2000;
@@ -13,10 +15,15 @@ let VIEWPORT_MAX_Y = 2000;
 let VIEWPORT_RESOLUTION_WIDTH = 1920;
 let VIEWPORT_RESOLUTION_HEIGHT = 1080;
 
-const STEP = 25;
-
+// model
+const STEP = 40;
 let model = [];
 
+//rotate
+let THETA_Y = 0;
+const DTHETA_Y = 0.01;
+
+// canvas
 let canvas;
 let ctx;
 
@@ -35,7 +42,10 @@ function init(e) {
 function frame() {
     ctx.clearRect(0, 0, VIEWPORT_MAX_X, VIEWPORT_MAX_Y);
 
-    render(model, new Point3D(0, 0, 0));
+    let rotated = rotateModelY(model, THETA_Y);
+    render(rotated, new Point3D(0, 0, 0));
+
+    THETA_Y += DTHETA_Y;
 
     requestAnimationFrame(frame);
 }
@@ -95,6 +105,24 @@ function translateToCanvas(point) {
     const PIXEL_Y = VIEWPORT_RESOLUTION_HEIGHT - (point.y - VIEWPORT_MIN_Y) * VIEWPORT_RESOLUTION_HEIGHT / (VIEWPORT_MAX_Y - VIEWPORT_MIN_Y);
 
     return new Point2D(PIXEL_X, PIXEL_Y);
+}
+
+function rotatePointY(point, theta) {
+    const X = Math.cos(theta) * point.x - Math.sin(theta) * point.z;
+    const Y = point.y;
+    const Z = Math.sin(theta) * point.x + Math.cos(theta) * point.z;
+
+    return new Point3D(X, Y, Z);
+}
+
+function rotateModelY(model, theta) {
+    let rotatedModel = [];
+
+    model.forEach(point => {
+        rotatedModel.push(rotatePointY(point, theta));
+    });
+
+    return rotatedModel;
 }
 
 function renderPoint(point) {
